@@ -1,0 +1,5 @@
+PedigreeFile                  ,Pedigree.txt
+GenotypesFileOffspring        ,AllOffspringGenotypes.txt
+PhaseFileSire                 ,PhaseSire.txt
+NumberOfSires                 ,50
+NumberOfSnp                   ,2000
