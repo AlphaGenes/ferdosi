@@ -251,7 +251,7 @@ module Ferdosi
 			MaxIndex = MaxIndexArray(1)
 			if (FmvCounts(MaxIndex) <= 2) then
 				ParentPhaseAtSnp(2,:)=-99
-			elseif (CountFull > 2) then
+			elseif ((CountFull > 2) .and. (nHalfSib <=20)) then
 				ParentPhaseAtSnp(2,:)=-99
 			else 
 				if (MaxIndex == 1) then
