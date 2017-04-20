@@ -63,7 +63,6 @@ module ModuleAccuracy
                         exit 
                     endif
                 enddo
-                print*, InID, AllParameters%SireArray(PosID)%ID, FirstHetPos
 
                 YieldP1 = 0
                 PhaseAccP1 = 0.0

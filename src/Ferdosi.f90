@@ -305,9 +305,6 @@ module Ferdosi
 			integer :: i
 
 			do i=1, nHalfSib
-
-				print*, i, HalfSibFmvAtSnp(i,:)
-
 				if (((HalfSibFmvAtSnp(i,1)) == (2*(ParentPhaseFmv(1,1)))) .and. ((HalfSibFmvAtSnp(i,2)) == (2*(ParentPhaseFmv(2,1))))) then
 					HalfSibParentPhaseCode(i, PrevSnp:CurrSnp) = 1 ! Set everything between two opposing homozygous snps to be Paternal gamete
 				elseif (((HalfSibFmvAtSnp(i,1)) == (2*(ParentPhaseFmv(1,2)))) .and. ((HalfSibFmvAtSnp(i,2)) == (2*(ParentPhaseFmv(2,2))))) then

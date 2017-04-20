@@ -27,7 +27,6 @@ module ModuleRunFerdosi
             do i=1, AllParameters%nSire
                 nHalfSib = AllParameters%SireArray(i)%nOffSpring
                 ParentGender = 1
-                print*, AllParameters%SireArray(i)%ID
                 call FerdosiRunner(nHalfSib, AllParameters%nSnp, ParentGender, AllParameters%SireArray(i)%MyPhase, AllParameters%SireArray(i)%OffspringGenotypes, AllParameters%SireArray(i)%OffspringPhase)
 
             enddo
