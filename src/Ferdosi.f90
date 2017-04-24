@@ -3,32 +3,38 @@
 module Ferdosi
 
 	! AUTHOR : SGONEN 18.02.2016
-
+	use PedigreeModule
 	implicit none
 
 	public :: FerdosiRunner
 
 	contains
 
-	!###########################################################################################################################################################
-		subroutine FerdosiRunner(nHalfSib, nSnp, ParentGender, ParentPhase, HalfSibGeno, HalfSibPhase)
 
+		subroutine FerdosiRunner(ind, nSnp)
+			use pedigreeModule
+			use IndividualHelperModule, only : getOnlyHalfSibsGenotyped
 			implicit none
 
-			integer, intent(in) :: nHalfSib, nSnp, ParentGender
-			real, intent(inout), dimension (:,:) :: HalfSibGeno(nHalfSib, nSnp), ParentPhase(nSnp, 2)
-			real, intent(inout), dimension(:,:,:) :: HalfSibPhase(nHalfSib,nSnp,2) !Phase arrays are dimension(nIndividuals, nSnp, 2) for phase 1 (paternal) and phase 2 (maternal)
+			type(individual), intent(inout) :: ind
+			integer, intent(in) :: nSnp
 
 			real, allocatable, dimension(:) :: OpposingHomoPositions
 			real, allocatable, dimension(:,:) :: HalfSibRecombPos, HalfSibParentPhaseCode
 			logical :: CanRun
+			real, dimension(:,:,:), allocatable :: HalfSibPhase!Phase arrays are dimension(nIndividuals, nSnp, 2) for phase 1 (paternal) and phase 2 (maternal)
+			type(PedigreeHolder) :: ped
+			type(IndividualLinkedList) :: halfSibs
 
-			allocate(HalfSibRecombPos(nHalfsib, nSnp))
+			halfSibs = getOnlyHalfSibsGenotyped(ind)
+
+
+			allocate(HalfSibRecombPos(halfSibs%length, nSnp))
 			allocate(OpposingHomoPositions(nSnp))
-			allocate(HalfSibParentPhaseCode(nHalfSib, nSnp)) !1 is Pat Phase for common parent, 0 is Mat Phase for common parent
-
+			allocate(HalfSibParentPhaseCode(halfSibs%length, nSnp)) !1 is Pat Phase for common parent, 0 is Mat Phase for common parent
+			
 			OpposingHomoPositions = 0
-			HalfSibParentPhaseCode = -99 
+			HalfSibParentPhaseCode = MissingPhaseCode
 			HalfSibRecombPos = 0
 			CanRun = .False.
 			!Part 1 of Ferdosi: Paternal strand detection based on opposing homozygous markers in half-sib families
@@ -37,18 +43,20 @@ module Ferdosi
 
 			!Part 3 of Ferdosi: Phasing of genotypes of half-sib families
 
-			call GetOpposingHomozygoteSnp(nHalfSib,nSnp,HalfSibGeno,OpposingHomoPositions, CanRun)
+			allocate(HalfSibPhase(halfSibs%length,nSnp,2))
+
+			call GetOpposingHomozygoteSnp(nSnp,halfSibs,OpposingHomoPositions, CanRun)
 			
-			call FillFixed(nHalfsib,nSnp,HalfSibGeno,ParentPhase, OpposingHomoPositions)
+			call FillFixed(nSnp,halfSibs,ind, OpposingHomoPositions)
 			
 			if (CanRun) then
-				call DefineCommonParentPhase(nHalfSib,nSnp,ParentPhase,HalfSibGeno,OpposingHomoPositions,HalfSibRecombPos,HalfSibParentPhaseCode)
+				call DefineCommonParentPhase(nSnp,ind,halfSibs,OpposingHomoPositions,HalfSibRecombPos,HalfSibParentPhaseCode)
 
-				call InferCommonParentHaplotypes(nHalfSib,nSnp,ParentPhase,HalfSibGeno,HalfSibParentPhaseCode, OpposingHomoPositions, HalfSibRecombPos)
+				call InferCommonParentHaplotypes(nSnp,ind,halfSibs,HalfSibParentPhaseCode, OpposingHomoPositions, HalfSibRecombPos)
 				
-				call DefineRecombLocations(nHalfSib, nSnp, HalfSibRecombPos, ParentPhase, HalfSibGeno, HalfSibParentPhaseCode)
+				call DefineRecombLocations(nSnp, HalfSibRecombPos, ind, halfSibs, HalfSibParentPhaseCode)
 
-				call PhaseHalfSibs(nHalfSib,nSnp,ParentGender,HalfSibPhase,ParentPhase,HalfSibParentPhaseCode,HalfSibGeno)
+				call PhaseHalfSibs(nSnp,ind,HalfSibPhase,HalfSibParentPhaseCode,halfSibs)
 			endif
 
 			deallocate(HalfSibRecombPos)
@@ -57,27 +65,27 @@ module Ferdosi
 
 		end subroutine FerdosiRunner
 
+
 	!###########################################################################################################################################################
 
-		subroutine GetOpposingHomozygoteSnp(nHalfSib,nSnp,HalfSibGeno,OpposingHomoPositions, CanRun)
+		subroutine GetOpposingHomozygoteSnp(nSnp,halfSibs,OpposingHomoPositions, CanRun)
 			
 			implicit none
 
-			integer, intent(in) :: nHalfSib, nSnp
+			integer, intent(in) :: nSnp
 			real, intent(inout), dimension(:) :: OpposingHomoPositions(nSnp)
-			real, intent(in), dimension(:,:,:) :: HalfSibGeno(nHalfSib,nSnp) 
 			logical, intent(inout) :: CanRun
 
 			integer :: i
 			real, allocatable, dimension(:) :: TempGenos
+			type(IndividualLinkedList), intent(in) :: halfSibs
+			allocate(TempGenos(halfSibs%length))
 
-			allocate(TempGenos(nHalfSib))
-
-			TempGenos = -99
+			TempGenos = MissingPhaseCode
 
 			do i=1, nSnp
-				TempGenos = -99
-				TempGenos = HalfSibGeno(:,i)
+				TempGenos = MissingPhaseCode
+				TempGenos = halfSibs%getGenotypesAtPosition(i)
 				if((ANY(TempGenos==0)) .and. (ANY(TempGenos==2))) then
 					OpposingHomoPositions(i) = 1
 				endif
@@ -95,23 +103,26 @@ module Ferdosi
 
 	!###########################################################################################################################################################
 
-		subroutine FillFixed(nHalfsib,nSnp,HalfSibGeno,ParentPhase, OpposingHomoPositions)
+		subroutine FillFixed(nSnp,halfSibs,parent, OpposingHomoPositions)
 			
 			implicit none
 
-			integer, intent(in) :: nHalfSib, nSnp
-			real, intent(inout), dimension(:,:) :: ParentPhase(nSnp, 2)
-			real, intent(in), dimension(:,:) :: HalfSibGeno(nHalfSib,nSnp)
+			integer, intent(in) :: nSnp
 			real, intent(inout), dimension(:) :: OpposingHomoPositions(nSnp)
-
+			type(individual), intent(inout) :: parent
+			type(IndividualLinkedList), intent(in) :: halfSibs
 			integer :: i
+			integer, dimension(:),allocatable :: genotypes			
+
+			
 
 			do i=1, nSnp
-				if(ALL(HalfSibGeno(:,i)==0)) then
-					ParentPhase(i,:) = 0
+				genotypes = halfsibs%getGenotypesAtPosition(i)
+				if(ALL(genotypes==0)) then
+					parent%phase(i,:) = 0
 					OpposingHomoPositions(i) = 2
-				elseif (ALL(HalfSibGeno(:,i)==2)) then
-					ParentPhase(i,:) = 1
+				elseif (ALL(genotypes==2)) then
+					parent%phase(i,:) = 1
 					OpposingHomoPositions(i) = 2
 				endif
 
@@ -120,14 +131,15 @@ module Ferdosi
 	!###########################################################################################################################################################
 
 
-		subroutine DefineCommonParentPhase(nHalfSib,nSnp,ParentPhase,HalfSibGeno,OpposingHomoPositions,HalfSibRecombPos,HalfSibParentPhaseCode)
+		subroutine DefineCommonParentPhase(nSnp,parent,halfSibs,OpposingHomoPositions,HalfSibRecombPos,HalfSibParentPhaseCode)
 
 			implicit none
-
-			integer, intent(in) :: nHalfSib, nSnp
+			
+			integer, intent(in) :: nSnp
+			type(individual) :: parent
+			type(IndividualLinkedList) :: halfSibs
 			real, intent(in), dimension(:) :: OpposingHomoPositions(nSnp)
-			real, intent(inout), dimension(:,:) :: ParentPhase(nSnp, 2), HalfSibRecombPos(nHalfsib, nSnp), HalfSibParentPhaseCode(nHalfSib,nSnp)
-			real, intent(in), dimension(:,:) :: HalfSibGeno(nHalfSib,nSnp)
+			real, intent(inout), dimension(:,:) ::HalfSibRecombPos(halfSibs%length, nSnp), HalfSibParentPhaseCode(halfSibs%length,nSnp)
 
 
 			integer :: i, FirstSnp, PrevSnp
@@ -138,28 +150,28 @@ module Ferdosi
 			PrevSnp = 0
 
 			allocate(ParentPhaseFmv(2,2)) !first is snp, second is phase
-			allocate(HalfSibGenoAtSnp(nHalfSib))
-			allocate(HalfSibFmvAtSnp(nHalfSib, 2))
+			allocate(HalfSibGenoAtSnp(halfsibs%length))
+			allocate(HalfSibFmvAtSnp(halfsibs%length, 2))
 
-			HalfSibFmvAtSnp = -99
-			HalfSibParentPhaseCode = -99 
+			HalfSibFmvAtSnp = MissingPhaseCode
+			HalfSibParentPhaseCode = MissingPhaseCode
 			HalfSibRecombPos = 0
-			HalfSibGenoAtSnp = -99
-			HalfSibFmvAtSnp = -99
-			ParentPhaseFmv = -99
+			HalfSibGenoAtSnp = MissingPhaseCode
+			HalfSibFmvAtSnp = MissingPhaseCode
+			ParentPhaseFmv = MissingPhaseCode
 
 			do i=1, nSnp
-				HalfSibGenoAtSnp = -99
+				HalfSibGenoAtSnp = MissingPhaseCode
 				if (OpposingHomoPositions(i) == 1) then
-					HalfSibGenoAtSnp(:) =  HalfSibGeno(:,i)
+					HalfSibGenoAtSnp(:) =  halfSibs%getGenotypesAtPosition(i)
 
-					call DetermineFmvAndSirePhase(nHalfSib, FirstSnp, HalfSibGenoAtSnp, HalfSibFmvAtSnp, ParentPhaseFmv)
-					if ((PrevSnp/=0) .and. (.not. (ANY(ParentPhaseFmv(:,:)==-99)))) then
-						call DetermineHalfSibParentPhaseInhert(nHalfSib, nSnp, i, PrevSnp, HalfSibFmvAtSnp, ParentPhaseFmv, HalfSibParentPhaseCode, HalfSibRecombPos)
+					call DetermineFmvAndSirePhase(halfsibs%length, FirstSnp, HalfSibGenoAtSnp, HalfSibFmvAtSnp, ParentPhaseFmv)
+					if ((PrevSnp/=0) .and. (.not. (ANY(ParentPhaseFmv(:,:)==MissingPhaseCode)))) then
+						call DetermineHalfSibParentPhaseInhert(halfsibs%length, nSnp, i, PrevSnp, HalfSibFmvAtSnp, ParentPhaseFmv, HalfSibParentPhaseCode, HalfSibRecombPos)
 					endif
-					ParentPhase(i,:) = ParentPhaseFmv(2,:)
+					parent%phase(i,:) = ParentPhaseFmv(2,:)
 
-					if (ANY(ParentPhaseFmv(2,:)==-99)) then
+					if (ANY(ParentPhaseFmv(2,:)== MissingPhaseCode)) then
 						ParentPhaseFmv(2,:) = ParentPhaseFmv(1,:)
 						exit
 					else 
@@ -169,7 +181,7 @@ module Ferdosi
 				endif
 			enddo 
 
-			call FillAll(nHalfSib, nSnp, HalfSibParentPhaseCode)
+			call FillAll(halfsibs%length, nSnp, HalfSibParentPhaseCode)
 
 			deallocate(ParentPhaseFmv)
 			deallocate(HalfSibGenoAtSnp)
@@ -196,12 +208,12 @@ module Ferdosi
 			FillHere = 0
 			PhaseFillZero = 0
 			PhaseFillOne = 0
-			ParentAlleleFilled = -99
+			ParentAlleleFilled = MissingPhaseCode
 			MaxIndexArray = 0
 			MaxIndex = 0
 			CountFull = 0
 			ParentPhaseAtSnp(1,:) = ParentPhaseAtSnp(2,:)
-			ParentPhaseAtSnp(2,:) = -99
+			ParentPhaseAtSnp(2,:) = MissingPhaseCode
 
 			if (FirstSnp == 1) then
 				PhaseFillZero = 1
@@ -250,37 +262,37 @@ module Ferdosi
 			MaxIndexArray = MAXLOC(FmvCounts)
 			MaxIndex = MaxIndexArray(1)
 			if (FmvCounts(MaxIndex) <= 2) then
-				ParentPhaseAtSnp(2,:)=-99
+				ParentPhaseAtSnp(2,:)= MissingPhaseCode
 			elseif ((CountFull > 2) .and. (nHalfSib <=20)) then
-				ParentPhaseAtSnp(2,:)=-99
+				ParentPhaseAtSnp(2,:)= MissingPhaseCode
 			else 
 				if (MaxIndex == 1) then
 					if (FmvCounts(1) /= FmvCounts(3)) then
 						ParentPhaseAtSnp(2,PhaseFillZero) = 0
 						ParentPhaseAtSnp(2,PhaseFillOne) = 1
 					else 
-						ParentPhaseAtSnp(2,:)=-99
+						ParentPhaseAtSnp(2,:)= MissingPhaseCode
 					endif
 				elseif (MaxIndex == 4) then
 					if (FmvCounts(4) /= FmvCounts(2)) then
 						ParentPhaseAtSnp(2,PhaseFillZero) = 0
 						ParentPhaseAtSnp(2,PhaseFillOne) = 1
 					else 
-						ParentPhaseAtSnp(2,:)=-99
+						ParentPhaseAtSnp(2,:)= MissingPhaseCode
 					endif
 				elseif (MaxIndex == 2) then
 					if (FmvCounts(2) /= FmvCounts(4)) then
 						ParentPhaseAtSnp(2,PhaseFillZero) = 1
 						ParentPhaseAtSnp(2,PhaseFillOne) = 0
 					else 
-						ParentPhaseAtSnp(2,:)=-99
+						ParentPhaseAtSnp(2,:)= MissingPhaseCode
 					endif
 				elseif (MaxIndex == 3) then
 					if (FmvCounts(3) /= FmvCounts(1)) then
 						ParentPhaseAtSnp(2,PhaseFillZero) = 1
 						ParentPhaseAtSnp(2,PhaseFillOne) = 0
 					else 
-						ParentPhaseAtSnp(2,:)=-99
+						ParentPhaseAtSnp(2,:)= MissingPhaseCode
 					endif
 				endif
 			endif
@@ -342,7 +354,7 @@ module Ferdosi
 			do i=1, nHalfSib
 
 				do j=1, nSnp
-					if (HalfSibParentPhaseCode(i,j) /= -99) then
+					if (HalfSibParentPhaseCode(i,j) /= MissingPhaseCode) then
 						PrevFilled = CurrFilled
 						CurrFilled = j
 						if (PrevFilled /=0) then
@@ -361,37 +373,40 @@ module Ferdosi
 
 	!###########################################################################################################################################################
 
-		subroutine InferCommonParentHaplotypes(nHalfsib,nSnp,ParentPhase,HalfSibGeno,HalfSibParentPhaseCode,OpposingHomoPositions, HalfSibRecombPos)
+		subroutine InferCommonParentHaplotypes(nSnp,parent,halfsibs,HalfSibParentPhaseCode,OpposingHomoPositions, HalfSibRecombPos)
 
 			implicit none
 
-			integer, intent(in) :: nHalfsib,nSnp
+			integer, intent(in) :: nSnp
 			real, intent(in), dimension(:) :: OpposingHomoPositions(nSnp)
-			real, intent(in), dimension(:,:) :: HalfSibGeno(nHalfsib,nSnp)
-			real, intent(inout), dimension(:,:) :: ParentPhase(nSnp, 2), HalfSibParentPhaseCode(nHalfsib,nSnp)
-			real, intent(in), dimension(:,:) :: HalfSibRecombPos(nHalfsib, nSnp)
-
+			type(IndividualLinkedList), intent(inout) :: HalfSibs
+			type(individual),intent(inout) :: parent
+			real, intent(inout), dimension(:,:) :: HalfSibParentPhaseCode(halfSibs%length,nSnp)
+			real, intent(in), dimension(:,:) :: HalfSibRecombPos(halfSibs%length, nSnp)
+			type(IndividualLinkedListNode), pointer :: halfSib 
 			integer :: i, j
 			integer :: ParentP1Count, ParentP1Indivcount, ParentP2Count, ParentP2Indivcount
 			integer :: P1Average, P2Average
 
-
+			
 			do i=1, nSnp
 				if (OpposingHomoPositions(i) == 0) then
 					ParentP1Count = 0
 					ParentP1Indivcount = 0
 					ParentP2Count = 0
 					ParentP2Indivcount = 0
-					do j=1, nHalfsib
-						if ((HalfSibGeno(j,i) /= -99) .and. (HalfSibGeno(j,i) /= 1) .and. HalfSibRecombPos(j,i)/=1) then
+					halfSib => halfsibs%first
+					do j=1, halfsibs%length
+						if ((halfSib%item%individualGenotype%getGenotype(i) /= MissingPhaseCode) .and. (halfSib%item%individualGenotype%getGenotype(i) /= 1) .and. HalfSibRecombPos(j,i)/=1) then
 							if (HalfSibParentPhaseCode(j,i) == 1) then
-								ParentP1Count = ParentP1Count + HalfSibGeno(j,i)
+								ParentP1Count = ParentP1Count + halfSib%item%individualGenotype%getGenotype(i)
 								ParentP1Indivcount = ParentP1Indivcount + 1
 							elseif (HalfSibParentPhaseCode(j,i) == 2) then
-								ParentP2Count = ParentP2Count + HalfSibGeno(j,i)
+								ParentP2Count = ParentP2Count + halfSib%item%individualGenotype%getGenotype(i)
 								ParentP2Indivcount = ParentP2Indivcount + 1
 							endif
 						endif
+						halfSib => halfSib%next
 					enddo
 
 
@@ -399,37 +414,38 @@ module Ferdosi
 					P2Average = nint(float(ParentP2Count) / float(2*ParentP2Indivcount))
 
 					if (P1Average < 0) then
-						P1Average = -99
+						P1Average = MissingPhaseCode
 					endif
 					if (P2Average < 0) then
-						P2Average = -99
+						P2Average = MissingPhaseCode
 					endif
 					if (ParentP1Indivcount <2) then
-						P1Average = -99
+						P1Average = MissingPhaseCode
 					endif
 					if (ParentP2Indivcount <2) then
-						P2Average = -99
+						P2Average = MissingPhaseCode
 					endif
-					if (((float(ParentP1Count) / float(2*ParentP1Indivcount)) > 0.1) .and. ((float(ParentP1Count) / float(2*ParentP1Indivcount)) < 0.9)) P1Average = -99
-					if (((float(ParentP2Count) / float(2*ParentP2Indivcount)) > 0.1) .and. ((float(ParentP2Count) / float(2*ParentP2Indivcount)) < 0.9)) P2Average = -99
+					if (((float(ParentP1Count) / float(2*ParentP1Indivcount)) > 0.1) .and. ((float(ParentP1Count) / float(2*ParentP1Indivcount)) < 0.9)) P1Average = MissingPhaseCode
+					if (((float(ParentP2Count) / float(2*ParentP2Indivcount)) > 0.1) .and. ((float(ParentP2Count) / float(2*ParentP2Indivcount)) < 0.9)) P2Average = MissingPhaseCode
 
 					
-					ParentPhase(i,1) = P1Average !TODO checker if previously assigned genotype and this phase match (if geno avail)
-					ParentPhase(i,2) = P2Average
+					parent%phase(i,1) = P1Average !TODO checker if previously assigned genotype and this phase match (if geno avail)
+					parent%phase(i,2) = P2Average
 				endif
 			enddo
 		end subroutine InferCommonParentHaplotypes
 
 	!###########################################################################################################################################################
 		
-		subroutine DefineRecombLocations(nHalfSib, nSnp, HalfSibRecombPos, ParentPhase, HalfSibGeno, HalfSibParentPhaseCode)
+		subroutine DefineRecombLocations(nSnp, HalfSibRecombPos, parent, halfSibs, HalfSibParentPhaseCode)
 
 			implicit none
 
-			integer, intent(in) :: nHalfSib, nSnp
-			real, intent(in), dimension (:,:) :: HalfSibGeno(nHalfSib, nSnp), ParentPhase(nSnp, 2)
-			real, intent(inout), dimension(:,:) :: HalfSibRecombPos(nHalfSib, nSnp), HalfSibParentPhaseCode(nHalfSib, nSnp)
-
+			integer, intent(in) :: nSnp
+			type(Individual),intent(inout) :: parent
+			type(IndividualLinkedList), intent(inout) :: halfSibs
+			real, intent(inout), dimension(:,:) :: HalfSibRecombPos(halfsibs%length, nSnp), HalfSibParentPhaseCode(halfsibs%length, nSnp)
+			type(IndividualLinkedListNode), pointer :: halfSib
 			integer :: i
 			real, allocatable, dimension(:) :: CurrHalfSibGeno, CurrHalfSibPhaseCode, CurrHalfSibRecombPos
 
@@ -437,20 +453,22 @@ module Ferdosi
 			allocate(CurrHalfSibPhaseCode(nSnp))
 			allocate(CurrHalfSibRecombPos(nSnp))
 
-			CurrHalfSibGeno = -99
-			CurrHalfSibPhaseCode = -99
-			CurrHalfSibRecombPos = -99
+			CurrHalfSibGeno = MissingPhaseCode
+			CurrHalfSibPhaseCode = MissingPhaseCode
+			CurrHalfSibRecombPos = MissingPhaseCode
+			
 
-			do i=1, nHalfSib
+			halfSib => halfSibs%first
+			do i=1, halfsibs%length
 				if (ANY(HalfSibRecombPos(i,:)==1)) then
-					CurrHalfSibGeno = HalfSibGeno(i,:)
+					CurrHalfSibGeno = halfSib%item%individualGenotype%toIntegerArray()
 					CurrHalfSibPhaseCode = HalfSibParentPhaseCode(i,:)
 					CurrHalfSibRecombPos = HalfSibRecombPos(i,:)
-					call CheckRecombAgree(nSnp, ParentPhase, CurrHalfSibGeno, CurrHalfSibPhaseCode, CurrHalfSibRecombPos)
+					call CheckRecombAgree(nSnp, parent%phase, CurrHalfSibGeno, CurrHalfSibPhaseCode, CurrHalfSibRecombPos)
 					HalfSibParentPhaseCode(i,:) = CurrHalfSibPhaseCode 
 					HalfSibRecombPos(i,:) = CurrHalfSibRecombPos 
 				endif
-
+				halfSib => halfSib%next
 			enddo
 
 		end subroutine DefineRecombLocations
@@ -522,8 +540,8 @@ module Ferdosi
 						else
 							switch = switch + 1
 							if (switch >= 3) then !not a valid recomb, set everything to missing
-								CurrHalfSibRecombPos(i:final) = -99
-								CurrHalfSibPhaseCode(i:final) = -99
+								CurrHalfSibRecombPos(i:final) = MissingPhaseCode
+								CurrHalfSibPhaseCode(i:final) = MissingPhaseCode
 								exit
 							endif
 							if (OtherPhase == 1) then
@@ -543,55 +561,57 @@ module Ferdosi
 
 	!###########################################################################################################################################################
 
-		subroutine PhaseHalfSibs(nHalfSib,nSnp,ParentGender,HalfSibPhase,ParentPhase,HalfSibParentPhaseCode,HalfSibGeno)
+		subroutine PhaseHalfSibs(nSnp,parent,HalfSibPhase,HalfSibParentPhaseCode,halfSibs)
 
 			implicit none
 
-			integer, intent(in) :: nHalfSib,nSnp,ParentGender
-			real, intent(in), dimension(:,:) :: ParentPhase(nSnp,2), HalfSibParentPhaseCode(nHalfSib, nSnp)
-			real, intent(inout), dimension(:,:) :: HalfSibGeno(nHalfSib, nSnp)
-			real, intent(inout), dimension(:,:,:) :: HalfSibPhase(nHalfSib, nSnp, 2)
+			integer, intent(in) :: nSnp
+			type(individual), intent(in) :: parent
+			type(IndividualLinkedList), intent(inout) :: halfSibs
+			real, intent(in), dimension(:,:) ::  HalfSibParentPhaseCode(halfSibs%length, nSnp)
+			real, intent(inout), dimension(:,:,:) :: HalfSibPhase(halfSibs%length, nSnp, 2)
 
 			integer :: i, j, k
 			integer :: OtherParent, HSParentCode, FillPhase
 			real :: HSGenotype, HSParentPhase
 			logical :: Compatible
+			type(IndividualLinkedListNode), pointer :: halfSib
 
 			OtherParent = 0
-			HSParentCode = -99
-			HSGenotype = -99
-			HSParentPhase = -99
+			HSParentCode = MissingPhaseCode
+			HSGenotype = MissingPhaseCode
+			HSParentPhase = MissingPhaseCode
 			Compatible = .False.
 
-			if (ParentGender==1) then
+			if (parent%gender==1) then
 				OtherParent=2
 			else
 				OtherParent=1
 			endif
 
-
-			do i=1, nHalfSib
+			halfSib => halfSibs%first
+			do i=1, halfSibs%length
 				do j=1, nSnp
 					HSParentCode = HalfSibParentPhaseCode(i, j)
-					HSGenotype = HalfSibGeno(i,j)
-					if (HSParentCode /= -99) then
-						HSParentPhase = ParentPhase(j,HSParentCode)
+					HSGenotype = halfSib%item%individualGenotype%getGenotype(j)
+					if (HSParentCode /= MissingPhaseCode) then
+						HSParentPhase = parent%phase(j,HSParentCode)
 						Compatible = CheckGenoCompatible(HSParentPhase, HSGenotype)
 						if (Compatible) then
-							HalfSibPhase(i,j,ParentGender) = HSParentPhase
+							HalfSibPhase(i,j,parent%gender) = HSParentPhase
 							HalfSibPhase(i,j,OtherParent) = HSGenotype - HSParentPhase
 						else !Genotyping error, set to missing
-							HalfSibGeno(i,j) = -99
+							call halfSib%item%individualGenotype%setGenotype(j,MissingGenotypeCode)
 							! Genotype = CorrectedGenotype !TODO if we have both parents info...? 
 						endif
 					endif
-					if (ANY(HalfSibPhase(i,j,:) == -99)) then
+					if (ANY(HalfSibPhase(i,j,:) == MissingPhaseCode)) then
 						if (HSGenotype == 2) then
 							FillPhase = 1
 						elseif (HSGenotype == 0) then
 							FillPhase = 0
 						else
-							FillPhase = -99
+							FillPhase = MissingPhaseCode
 						endif
 						do k=1, 2
 							HalfSibPhase(i,j,k) = FillPhase
@@ -599,6 +619,7 @@ module Ferdosi
 					endif
 
 				enddo
+				halfSib => halfSib%next
 			enddo
 
 		end subroutine PhaseHalfSibs
@@ -614,7 +635,7 @@ module Ferdosi
 
 			CheckGenoCompatible = .False.
 
-			if (HSParentPhase==-99) then
+			if (HSParentPhase==MissingPhaseCode) then
 				return
 			endif
 

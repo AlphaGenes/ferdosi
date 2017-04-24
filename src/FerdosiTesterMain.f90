@@ -15,6 +15,41 @@
 
 !###########################################################################################################################################################
 
+! program FerdosiTesterMain
+
+! 	use Ferdosi
+! 	use ModuleSireType
+!     use ModuleReadFiles
+!     use ModuleAccuracy
+!     use ModuleParameters
+!     use ModuleGet
+!     use ModuleRunFerdosi
+!     use ModuleWriteFiles
+
+! 	implicit none
+
+! 	type(Parameters) :: AllParameters
+
+! 	call ReadSpec(AllParameters, "FerdosiSpec.txt")
+
+! 	call ReadPedigree(AllParameters)
+! 	call ReadGenotypes(AllParameters)
+
+! 	call RunFerdosiPerSire(AllParameters)
+
+! 	call CalculateAccuracyStats(AllParameters)
+
+! 	call WritePhase(AllParameters)
+	
+! 	call WriteAccuracies(AllParameters)
+
+	
+! 	!TODO deallocate all arrays
+
+! end program FerdosiTesterMain
+
+
+
 program FerdosiTesterMain
 
 	use Ferdosi
@@ -25,18 +60,21 @@ program FerdosiTesterMain
     use ModuleGet
     use ModuleRunFerdosi
     use ModuleWriteFiles
+	use PedigreeModule
 
 	implicit none
 
 	type(Parameters) :: AllParameters
+	type(PedigreeHolder) :: ped
 
 	call ReadSpec(AllParameters, "FerdosiSpec.txt")
 
-	call ReadPedigree(AllParameters)
+	ped = PedigreeHolder(AllParameters%PedigreeFile)
+	
 
-	call ReadGenotypes(AllParameters)
+	call ped%addGenotypeInformationFromFile(AllParameters%GenotypesFileOffspring, AllParameters%nsnp)
 
-	call RunFerdosiPerSire(AllParameters)
+	call RunFerdosiPerSire(AllParameters, ped)
 
 	call CalculateAccuracyStats(AllParameters)
 

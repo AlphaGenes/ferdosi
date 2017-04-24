@@ -11,24 +11,24 @@ module ModuleRunFerdosi
         !###########################################################################################################################################################
 
 
-        subroutine RunFerdosiPerSire(AllParameters)
+        subroutine RunFerdosiPerSire(AllParameters, ped)
 
             use ModuleParameters
             use Ferdosi
-
+            use PedigreeModule
             implicit none
 
             type(Parameters), intent(inout) :: AllParameters
+            type(PedigreeHolder) :: ped
+            type(IndividualLinkedListNode),pointer :: ind
 
-            integer :: i, nHalfSib, ParentGender
+            integer :: i
             
             print*, "Running Ferdosi for each sire..."
-
-            do i=1, AllParameters%nSire
-                nHalfSib = AllParameters%SireArray(i)%nOffSpring
-                ParentGender = 1
-                call FerdosiRunner(nHalfSib, AllParameters%nSnp, ParentGender, AllParameters%SireArray(i)%MyPhase, AllParameters%SireArray(i)%OffspringGenotypes, AllParameters%SireArray(i)%OffspringPhase)
-
+            ind => ped%sireList%first
+            do i=1, ped%sireList%length
+                call FerdosiRunner(ind%item, AllParameters%nSnp)
+                ind => ind%next
             enddo
 
             
