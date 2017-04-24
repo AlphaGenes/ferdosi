@@ -23,7 +23,6 @@ program FerdosiTesterMain
     use ModuleAccuracy
     use ModuleParameters
     use ModuleGet
-    use ModuleTLC
     use ModuleRunFerdosi
     use ModuleWriteFiles
 

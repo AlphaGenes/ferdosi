@@ -33,8 +33,7 @@ module ModuleParameters
 
         subroutine ReadSpec(AllParameters, specfile)
 
-            use ModuleTLC
-
+            use AlphaHouseMod, only : ToLower
             implicit none
 
             character(len=*), intent(in) :: specfile
@@ -65,7 +64,7 @@ module ModuleParameters
                 read(fileunit,'(a30,A)', advance='NO', iostat=stat) SpecParam
                 read(fileunit,'(a1)', advance='NO', iostat=stat) comma
 
-                select case(trim(TLC(SpecParam)))
+                select case(trim(ToLower(SpecParam)))
          
                     case('pedigreefile')
                         stat=0

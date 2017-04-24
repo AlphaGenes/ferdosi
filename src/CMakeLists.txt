@@ -9,7 +9,6 @@ ${SRCFERDOSI}ModuleParameters.f90
 ${SRCFERDOSI}ModuleReadFiles.f90
 ${SRCFERDOSI}ModuleRunFerdosi.f90
 ${SRCFERDOSI}ModuleSireType.f90
-${SRCFERDOSI}ModuleTLC.f90
 ${SRCFERDOSI}ModuleWriteFiles.f90
 )
 
