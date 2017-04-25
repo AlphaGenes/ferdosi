@@ -6,7 +6,7 @@ ${SRCFERDOSI}FerdosiTesterMain.f90
 ${SRCFERDOSI}ModuleAccuracy.f90
 ${SRCFERDOSI}ModuleGet.f90
 ${SRCFERDOSI}ModuleParameters.f90
-${SRCFERDOSI}ModuleReadFiles.f90
+# ${SRCFERDOSI}ModuleReadFiles.f90
 ${SRCFERDOSI}ModuleRunFerdosi.f90
 ${SRCFERDOSI}ModuleSireType.f90
 ${SRCFERDOSI}ModuleWriteFiles.f90

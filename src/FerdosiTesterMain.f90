@@ -54,7 +54,6 @@ program FerdosiTesterMain
 
 	use Ferdosi
 	use ModuleSireType
-    use ModuleReadFiles
     use ModuleAccuracy
     use ModuleParameters
     use ModuleGet
@@ -73,12 +72,24 @@ program FerdosiTesterMain
 	
 
 	call ped%addGenotypeInformationFromFile(AllParameters%GenotypesFileOffspring, AllParameters%nsnp)
+	allocate(AllParameters%SireArray(ped%sireList%length))
+	AllParameters%nSire = ped%sireList%length
+	block
+		type(IndividualLinkedListNode),pointer :: tmpInd
+		integer :: i
+		tmpInd => ped%sireList%first
+		do i=1, ped%sireList%length
+			call tmpInd%item%initPhaseArrays(AllParameters%nsnp)
+			AllParameters%SireArray(i)%ind => tmpInd%item
+			tmpInd => tmpInd%next
+		enddo
 
+	end block 
 	call RunFerdosiPerSire(AllParameters, ped)
 
 	call CalculateAccuracyStats(AllParameters)
 
-	call WritePhase(AllParameters)
+	call WritePhase(AllParameters, ped)
 	
 	call WriteAccuracies(AllParameters)
 

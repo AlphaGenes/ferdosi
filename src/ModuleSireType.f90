@@ -1,6 +1,6 @@
 !###########################################################################################################################################################
 module ModuleSireType
-
+    use PedigreeModule
     implicit none
 
 
@@ -8,13 +8,9 @@ module ModuleSireType
 
     type Sire
 
-    	integer :: ID, PosID
-    	integer :: nOffspring
         double precision :: YieldP1, YieldP2
         double precision :: PhaseAccP1, PhaseAccP2
-        integer, allocatable, dimension(:) :: OffspringIds
-        real, allocatable, dimension(:,:) :: OffspringGenotypes, MyPhase
-        real, allocatable, dimension(:,:,:) :: OffspringPhase
+        type(Individual), pointer :: ind
         
 
     end type Sire

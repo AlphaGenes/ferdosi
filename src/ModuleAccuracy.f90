@@ -15,14 +15,16 @@ module ModuleAccuracy
 
             use ModuleParameters
             use ModuleGet
-
+            use pedigreeModule
+            use ConstantModule
+            
             implicit none
 
             type(Parameters), intent(inout) :: AllParameters
-
             integer :: i
             integer :: FileUnit, stat
-            integer :: InID, PosID, YieldP1, YieldP2, FirstHetPos
+            integer :: PosID, YieldP1, YieldP2, FirstHetPos
+            character(len=IDLENGTH) :: InID
             double precision :: PhaseAccP1, PhaseAccP2
             real, allocatable, dimension(:,:) :: TruePhase, ImputedPhase, ImputedPhaseFormatted
 
@@ -30,7 +32,7 @@ module ModuleAccuracy
             write(*,*), "Calculating sire phase accuracies..." 
 
 
-            open(newunit=FileUnit, file=AllParameters%PhaseFileSire, status="old")
+            open(newunit=FileUnit, file=AllParameters%phaseFileSire, status="old")
 
             allocate(TruePhase(2,AllParameters%nSnp))
             allocate(ImputedPhaseFormatted(2,AllParameters%nSnp))
@@ -43,18 +45,17 @@ module ModuleAccuracy
                 TruePhase = -99
                 ImputedPhase = -99
                 ImputedPhaseFormatted = -99
-                InID = -99
                 PosID = -99
                 FirstHetPos = 1
                 read(FileUnit, *, iostat=stat) InID, TruePhase(1,:)
                 if (stat/=0) exit   
                 read(FileUnit, *, iostat=stat) InID, TruePhase(2,:)
                 if (stat/=0) exit
-
-                call GetIDType(AllParameters%SireArray, AllParameters%nSire, InID, PosID)
                 
-                ImputedPhase(1,:) = AllParameters%SireArray(PosID)%MyPhase(:,1)
-                ImputedPhase(2,:) = AllParameters%SireArray(PosID)%MyPhase(:,2)
+                call GetIDType(AllParameters%SireArray, AllParameters%nSire, InID, PosID)
+
+                ImputedPhase(1,:) = AllParameters%SireArray(PosID)%ind%phaseInfo(:,1)
+                ImputedPhase(2,:) = AllParameters%SireArray(PosID)%ind%phaseInfo(:,2)
 
 
                 do i=1, AllParameters%nSnp
@@ -78,8 +79,8 @@ module ModuleAccuracy
                 call CalculateCorrelation(YieldP2, AllParameters%nSnp, TruePhase(2,:), ImputedPhaseFormatted(2,:), PhaseAccP2)
                 AllParameters%SireArray(PosID)%YieldP1 = float(YieldP1) / float(AllParameters%nSnp)
                 AllParameters%SireArray(PosID)%YieldP2 = float(YieldP2) / float(AllParameters%nSnp)
-                AllParameters%SireArray(PosID)%PhaseAccP1 = PhaseAccP1
-                AllParameters%SireArray(PosID)%PhaseAccP2 = PhaseAccP2
+                AllParameters%SireArray(PosID)%phaseAccP1 = PhaseAccP1
+                AllParameters%SireArray(PosID)%phaseAccP2 = PhaseAccP2
 
             enddo 
 

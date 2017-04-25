@@ -27,7 +27,7 @@ module ModuleRunFerdosi
             print*, "Running Ferdosi for each sire..."
             ind => ped%sireList%first
             do i=1, ped%sireList%length
-                call FerdosiRunner(ind%item, AllParameters%nSnp)
+                call FerdosiRunner(ind%item, AllParameters%nSnp, AllParameters%overwriteHalfSibPhase)
                 ind => ind%next
             enddo
 

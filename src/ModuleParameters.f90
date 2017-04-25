@@ -20,6 +20,7 @@ module ModuleParameters
         integer :: nOffspringTotal
         type(Sire), allocatable, dimension(:) :: SireArray
         integer, allocatable, dimension(:,:) :: Offspring2SireArray
+        logical :: overwriteHalfSibPhase !< Phase half sibs
 
 
 	end type Parameters
@@ -47,7 +48,8 @@ module ModuleParameters
             print *, "Reading Specfile"
             open(newunit=fileunit, file=specfile, status="old")
 
-            
+
+            AllParameters%overwriteHalfSibPhase = .false.
             FileLength = 0
             buffer=""
             TempStr=""
@@ -98,7 +100,7 @@ module ModuleParameters
                         do while (stat==0)
                             read (fileunit, "(A)", advance='NO', size=sizeline, iostat=stat) buffer
                             LineRead=LineRead+1
-                            AllParameters%PhaseFileSire = AllParameters%PhaseFileSire // buffer
+                            AllParameters%phaseFileSire = AllParameters%phaseFileSire // buffer
                         enddo
                         if (LineRead == 0) then
                             print *, "PhaseFileSire not set properly in spec file"

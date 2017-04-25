@@ -13,7 +13,8 @@ module ModuleGet
 
 			implicit none
 
-			integer, intent(in) :: InArrayDim, InID
+			integer, intent(in) :: InArrayDim
+			character(len=*), intent(in) :: InID
 			integer, intent(inout) :: InSeqID
 			type(Sire), dimension(:), intent(in) :: InArray(InArrayDim)
 			
@@ -22,7 +23,7 @@ module ModuleGet
 			InSeqID = 0
 
 			do i=1, InArrayDim
-				if ((InArray(i)%ID) == InID) then
+				if ((trim(InArray(i)%ind%originalId)) == trim(InID) .or. (trim(InArray(i)%ind%originalId)) == "dum"//trim(InID) ) then
 					InSeqID = i
 				else
 					continue
