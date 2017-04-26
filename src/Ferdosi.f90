@@ -23,7 +23,6 @@ module Ferdosi
 			real, allocatable, dimension(:,:) :: HalfSibRecombPos, HalfSibParentPhaseCode
 			logical :: CanRun,overwritehalfsibphase
 			real, dimension(:,:,:), allocatable :: HalfSibPhase!Phase arrays are dimension(nIndividuals, nSnp, 2) for phase 1 (paternal) and phase 2 (maternal)
-			type(PedigreeHolder) :: ped
 			type(IndividualLinkedList) :: halfSibs
 
 			halfSibs = getOnlyHalfSibsGenotyped(ind)

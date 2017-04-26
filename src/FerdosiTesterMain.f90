@@ -93,6 +93,7 @@ program FerdosiTesterMain
 	
 	call WriteAccuracies(AllParameters)
 
+	call ped%destroyPedigree()
 	
 	!TODO deallocate all arrays
 
