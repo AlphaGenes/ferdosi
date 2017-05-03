@@ -2,6 +2,8 @@
 
 module ModuleAccuracy
     
+    use ConstantModule
+    
     implicit none
 
     !###########################################################################################################################################################
@@ -37,15 +39,15 @@ module ModuleAccuracy
             allocate(TruePhase(2,AllParameters%nSnp))
             allocate(ImputedPhaseFormatted(2,AllParameters%nSnp))
             allocate(ImputedPhase(2,AllParameters%nSnp))
-            TruePhase = -99
-            ImputedPhase = -99
-            ImputedPhaseFormatted = -99
+            TruePhase = MissingPhaseCode
+            ImputedPhase = MissingPhaseCode
+            ImputedPhaseFormatted = MissingPhaseCode
             
             do 
-                TruePhase = -99
-                ImputedPhase = -99
-                ImputedPhaseFormatted = -99
-                PosID = -99
+                TruePhase = MissingPhaseCode
+                ImputedPhase = MissingPhaseCode
+                ImputedPhaseFormatted = MissingPhaseCode
+                PosID = MissingPhaseCode
                 FirstHetPos = 1
                 read(FileUnit, *, iostat=stat) InID, TruePhase(1,:)
                 if (stat/=0) exit   
@@ -73,9 +75,9 @@ module ModuleAccuracy
                
                 call DetermineSamePhase(ImputedPhase, TruePhase, ImputedPhaseFormatted, AllParameters%nSnp, FirstHetPos)
 
-                YieldP1 = (AllParameters%nSnp - (count(ImputedPhaseFormatted(1,:)==-99)))
+                YieldP1 = (AllParameters%nSnp - (count(ImputedPhaseFormatted(1,:)==MissingPhaseCode)))
                 call CalculateCorrelation(YieldP1, AllParameters%nSnp, TruePhase(1,:), ImputedPhaseFormatted(1,:), PhaseAccP1)
-                YieldP2 = (AllParameters%nSnp - (count(ImputedPhaseFormatted(2,:)==-99)))
+                YieldP2 = (AllParameters%nSnp - (count(ImputedPhaseFormatted(2,:)==MissingPhaseCode)))
                 call CalculateCorrelation(YieldP2, AllParameters%nSnp, TruePhase(2,:), ImputedPhaseFormatted(2,:), PhaseAccP2)
                 AllParameters%SireArray(PosID)%YieldP1 = float(YieldP1) / float(AllParameters%nSnp)
                 AllParameters%SireArray(PosID)%YieldP2 = float(YieldP2) / float(AllParameters%nSnp)
@@ -121,11 +123,11 @@ module ModuleAccuracy
             if (Yield.lt.nWantedSNp) then
                 allocate(TrueTmp(Yield))
                 allocate(ImpTmp(Yield))
-                TrueTmp = -99
-                ImpTmp = -99
+                TrueTmp = MissingPhaseCode
+                ImpTmp = MissingPhaseCode
                 p=1
                 do i=1,nWantedSNp
-                    if (ImputedArray(i)/=-99) then
+                    if (ImputedArray(i)/=MissingPhaseCode) then
                         TrueTmp(p)=TrueArray(i)
                         ImpTmp(p)=ImputedArray(i)
                         p=p+1
@@ -156,7 +158,7 @@ module ModuleAccuracy
 
             Phase1 = 0
             Phase2 = 0
-            ImputedPhaseOut = -99
+            ImputedPhaseOut = MissingPhaseCode
 
             if (FirstHeteroPos /= 0 ) then
                 if(ImputedPhaseIn(1,FirstHeteroPos)==TruePhaseIn(1,FirstHeteroPos)) then

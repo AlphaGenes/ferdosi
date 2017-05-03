@@ -122,7 +122,6 @@ module Ferdosi
 					OpposingHomoPositions(i) = 2
 				elseif (ALL(genotypes==2)) then
 					parent%phaseInfo(i,:) = 1
-					print *,"hereere"
 					OpposingHomoPositions(i) = 2
 				endif
 

@@ -75,9 +75,9 @@ module ModuleReadFiles
                 allocate(AllParameters%SireArray(i)%OffspringGenotypes(OffspringCount, nSnpTemp))
                 allocate(AllParameters%SireArray(i)%OffspringPhase(OffspringCount, nSnpTemp, 2))
                 allocate(AllParameters%SireArray(i)%MyPhase(nSnpTemp,2))
-                AllParameters%SireArray(i)%OffspringGenotypes = -99
-                AllParameters%SireArray(i)%OffspringPhase = -99
-                AllParameters%SireArray(i)%MyPhase = -99
+                AllParameters%SireArray(i)%OffspringGenotypes = MissingPhaseCode
+                AllParameters%SireArray(i)%OffspringPhase = MissingPhaseCode
+                AllParameters%SireArray(i)%MyPhase = MissingPhaseCode
                 allocate(AllParameters%SireArray(i)%OffspringIds(OffspringCount))
                 AllParameters%SireArray(i)%OffspringIds = -99
             enddo
@@ -105,7 +105,7 @@ module ModuleReadFiles
 
             IDIn = 0
             PosID = 0
-            InGenotypes = -99
+            InGenotypes = MissingPhaseCode
             FileLength = 0
 
             print*, "Reading Genotypes..."
@@ -123,9 +123,9 @@ module ModuleReadFiles
             do i=1, FileLength
                 IDIn = 0
                 PosID = 0
-                InGenotypes = -99
-                MySire = -99
-                MySireOffSpring = -99
+                InGenotypes = MissingPhaseCode
+                MySire = MissingPhaseCode
+                MySireOffSpring =MissingPhaseCode
                 read(fileunit, *, iostat=stat) IDIn, InGenotypes(:)
                 call GetIDInt(AllParameters%Offspring2SireArray(1,:), AllParameters%nOffspringTotal, IDIn, PosID) 
                 MySire=AllParameters%Offspring2SireArray(3,PosID)

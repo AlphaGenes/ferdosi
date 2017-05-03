@@ -65,7 +65,7 @@ module ModuleWriteFiles
             write(FileUnit,'(a86)') "SireID        Phase1Accuracy      Phase2Accuracy       Phase1Yield         Phase2Yield"
 
             do i=1, AllParameters%nSire
-               write(FileUnit, '(1i20, 4f20.10)') AllParameters%SireArray(i)%ind%id, AllParameters%SireArray(i)%phaseAccP1, AllParameters%SireArray(i)%phaseAccP2, AllParameters%SireArray(i)%YieldP1, AllParameters%SireArray(i)%YieldP2
+               write(FileUnit, '(a, 4f20.10)') AllParameters%SireArray(i)%ind%originalId, AllParameters%SireArray(i)%phaseAccP1, AllParameters%SireArray(i)%phaseAccP2, AllParameters%SireArray(i)%YieldP1, AllParameters%SireArray(i)%YieldP2
             enddo
 
             close(FileUnit)
