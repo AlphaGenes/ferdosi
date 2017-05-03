@@ -13,7 +13,7 @@ module Ferdosi
 
 		subroutine FerdosiRunner(ind, nSnp,overwritehalfsibphase)
 			use pedigreeModule
-			use IndividualHelperModule, only : getOnlyHalfSibsGenotyped
+			use IndividualHelperModule, only : GetOffspringsAsLinkedList
 			implicit none
 
 			type(individual), intent(inout) :: ind
@@ -25,7 +25,7 @@ module Ferdosi
 			real, dimension(:,:,:), allocatable :: HalfSibPhase!Phase arrays are dimension(nIndividuals, nSnp, 2) for phase 1 (paternal) and phase 2 (maternal)
 			type(IndividualLinkedList) :: halfSibs
 
-			halfSibs = getOnlyHalfSibsGenotyped(ind)
+			halfSibs = GetOffspringsAsLinkedList(ind)
 
 
 			allocate(HalfSibRecombPos(halfSibs%length, nSnp))
@@ -122,6 +122,7 @@ module Ferdosi
 					OpposingHomoPositions(i) = 2
 				elseif (ALL(genotypes==2)) then
 					parent%phaseInfo(i,:) = 1
+					print *,"hereere"
 					OpposingHomoPositions(i) = 2
 				endif
 
