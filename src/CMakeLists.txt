@@ -1,21 +1,28 @@
 # List all src files below inside set
 SET(FERDOSI_src
 
-${SRCFERDOSI}Ferdosi.f90
-${SRCFERDOSI}FerdosiTesterMain.f90
-${SRCFERDOSI}ModuleAccuracy.f90
-${SRCFERDOSI}ModuleGet.f90
-${SRCFERDOSI}ModuleParameters.f90
+Ferdosi.f90
+FerdosiTesterMain.f90
+ModuleAccuracy.f90
+ModuleGet.f90
+ModuleParameters.f90
 # ${SRCFERDOSI}ModuleReadFiles.f90
-${SRCFERDOSI}ModuleRunFerdosi.f90
-${SRCFERDOSI}ModuleSireType.f90
-${SRCFERDOSI}ModuleWriteFiles.f90
+ModuleRunFerdosi.f90
+ModuleSireType.f90
+ModuleWriteFiles.f90
 )
 
-add_definitions(-D COMMIT=${VERSION})
-ADD_EXECUTABLE(${PROGRAMEXE} ${FERDOSI_src})
+
+if(FERLIB)
+    SET(FERDOSILIB_src  ${FERDOSI_src}) 
+    ADD_LIBRARY(${FERLIB} STATIC ${FERDOSILIB_src})
+    TARGET_LINK_LIBRARIES(${FERLIB} ${AHLIB})
+else()
+    add_definitions(-D COMMIT=${VERSION})
+    ADD_EXECUTABLE(${PROGRAMEXE} ${FERDOSI_src})
 
 
-# add external links here
-TARGET_LINK_LIBRARIES(${PROGRAMEXE} ${AHLIB})
-INSTALL(TARGETS ${PROJECTNAMETOREPLACEEXE} RUNTIME DESTINATION bin)
+    # add external links here
+    TARGET_LINK_LIBRARIES(${PROGRAMEXE} ${AHLIB})
+    INSTALL(TARGETS ${PROJECTNAMETOREPLACEEXE} RUNTIME DESTINATION bin)
+endif(FERLIB)
