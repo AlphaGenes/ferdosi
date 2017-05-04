@@ -48,35 +48,6 @@
 
 ! end program FerdosiTesterMain
 
-subroutine doFerdosi(AllParameters,ped)
-	use ModuleParameters
-	use ModuleRunFerdosi
-
-	type(Parameters) :: AllParameters
-	type(PedigreeHolder) :: ped
-
-
-	! This trims the array to only include animals with 5 or more offspring, and that they are genotyped
-	call ped%sireList%removeIndividualsBasedOnThreshold(nOffsThresh=5, genotyped=.true.)
-	allocate(AllParameters%SireArray(ped%sireList%length))
-	AllParameters%nSire = ped%sireList%length
-	block
-		type(IndividualLinkedListNode),pointer :: tmpInd
-		integer :: i
-		tmpInd => ped%sireList%first
-		do i=1, ped%sireList%length
-			call tmpInd%item%initPhaseArrays(AllParameters%nsnp)
-			AllParameters%SireArray(i)%ind => tmpInd%item
-			tmpInd => tmpInd%next
-		enddo
-
-	end block 
-	call RunFerdosiPerSire(AllParameters, ped)
-
-
-
-end subroutine doFerdosi
-
 program FerdosiTesterMain
 
 	use Ferdosi

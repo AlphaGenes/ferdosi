@@ -15,12 +15,13 @@ module ModuleParameters
 		! from specfile
 		integer :: nSire, nSnp
 		character(len=:), allocatable :: PedigreeFile, GenotypesFileOffspring, PhaseFileSire
-
+        logical :: overwriteHalfSibPhase !< Phase half sibs
+        
         ! from program
         integer :: nOffspringTotal
         type(Sire), allocatable, dimension(:) :: SireArray
         integer, allocatable, dimension(:,:) :: Offspring2SireArray
-        logical :: overwriteHalfSibPhase !< Phase half sibs
+        
 
 
 	end type Parameters
