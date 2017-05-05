@@ -481,7 +481,7 @@ module Ferdosi
 			implicit none
 
 			integer, intent(in) :: nSnp
-			real, intent(in), dimension(:,:) :: ParentPhase(nSnp,2)
+			integer(kind=1), intent(in), dimension(:,:) :: ParentPhase(nSnp,2)
 			real, intent(inout), dimension(:) :: CurrHalfSibGeno(nSnp), CurrHalfSibPhaseCode(nSnp), CurrHalfSibRecombPos(nSnp)
 
 			integer :: i, next, OtherPhase, switch, final

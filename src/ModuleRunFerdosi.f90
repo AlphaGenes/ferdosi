@@ -40,10 +40,33 @@ module ModuleRunFerdosi
 
             end block 
             call RunFerdosiPerSire(AllParameters, ped)
-
+            call convertPhaseInfo(ped)
 
 
         end subroutine doFerdosi
+
+
+        subroutine convertPhaseInfo(ped)
+            use HaplotypeModule
+            use PedigreeModule
+
+            type(PedigreeHolder), intent(inout) :: ped
+            type(haplotype) :: hap1, hap2
+            integer :: i
+            do i=1, ped%pedigreeSize
+
+                hap1 = Haplotype(ped%pedigree(i)%phaseinfo(:,1))
+                hap2 = Haplotype(ped%pedigree(i)%phaseinfo(:,2))
+                call ped%pedigree(i)%individualGenotype%setFromHaplotypesIfMissing(hap1,hap2)
+
+
+
+                deallocate(ped%pedigree(i)%phaseInfo)
+            enddo 
+
+
+
+        end subroutine convertPhaseInfo
 
 
         subroutine RunFerdosiPerSire(AllParameters, ped)
