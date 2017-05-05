@@ -60,8 +60,9 @@ module ModuleRunFerdosi
                 call ped%pedigree(i)%individualGenotype%setFromHaplotypesIfMissing(hap1,hap2)
 
 
-
-                deallocate(ped%pedigree(i)%phaseInfo)
+                if (allocated(ped%pedigree(i)%phaseInfo)) then
+                    deallocate(ped%pedigree(i)%phaseInfo)
+                endif
             enddo 
 
 
