@@ -82,7 +82,7 @@ module ModuleRunFerdosi
             type(IndividualLinkedListNode),pointer :: ind
 
             integer :: i
-            
+            print *, "Ferdosi passed ", ped%sireList%length, " sires"
             print*, "Running Ferdosi for each sire..."
             ind => ped%sireList%first
             do i=1, ped%sireList%length
