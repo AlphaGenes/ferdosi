@@ -10,6 +10,7 @@ module ModuleGet
 		subroutine GetIDType(InArray, InArrayDim, InID, InSeqID)
 
 			use ModuleSireType
+			use constantModule, only : dummyAnimalPrepre
 
 			implicit none
 
@@ -23,7 +24,7 @@ module ModuleGet
 			InSeqID = 0
 
 			do i=1, InArrayDim
-				if ((trim(InArray(i)%ind%originalId)) == trim(InID) .or. (trim(InArray(i)%ind%originalId)) == "dum"//trim(InID) ) then
+				if ((trim(InArray(i)%ind%originalId)) == trim(InID) .or. (trim(InArray(i)%ind%originalId)) == dummyAnimalPrepre//trim(InID) ) then
 					InSeqID = i
 				else
 					continue
