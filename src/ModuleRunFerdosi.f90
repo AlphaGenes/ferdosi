@@ -17,13 +17,17 @@ module ModuleRunFerdosi
         !> @author  David Wilson david.wilson@roslin.ed.ac.uk
         !> @date    October 26, 2016
         !---------------------------------------------------------------------------
-        subroutine doFerdosi(AllParameters,ped)
+        subroutine doFerdosi(AllParameters,ped, sireDamOpt)
             use ModuleParameters
 
             type(Parameters) :: AllParameters
             type(PedigreeHolder) :: ped
+            integer, optional, intent(in) ::sireDamOpt
 
 
+            ! TODO add in support for iterating through dams :P 
+
+            
             ! This trims the array to only include animals with 5 or more offspring, and that they are genotyped
             call ped%sireList%removeIndividualsBasedOnThreshold(nOffsThresh=5, genotyped=.true.)
             allocate(AllParameters%SireArray(ped%sireList%length))
