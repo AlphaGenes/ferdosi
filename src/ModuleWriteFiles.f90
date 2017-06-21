@@ -30,12 +30,12 @@ module ModuleWriteFiles
             open(newunit=FileUnit, file="ImputedSirePhase.txt", status="replace")
 
             write(StrSnp,*) AllParameters%nSnp
-            OutFmt='(a20,'//trim(adjustl(StrSnp))//'f7.1)'
+            OutFmt='(a20,'//trim(adjustl(StrSnp))//'i2)'
 
             tmpSire => ped%sireList%first
             do i=1, ped%sireList%length
-                write(FileUnit, OutFmt) tmpSire%item%originalId, tmpSire%item%phaseInfo(:,1)
-                write(FileUnit, OutFmt) tmpSire%item%originalId, tmpSire%item%phaseInfo(:,2)
+                write(FileUnit, OutFmt) tmpSire%item%originalId, tmpSire%item%individualPhase(1)%toIntegerArray()
+                write(FileUnit, OutFmt) tmpSire%item%originalId, tmpSire%item%individualPhase(2)%toIntegerArray()
                 tmpSire => tmpSire%next
             enddo
 

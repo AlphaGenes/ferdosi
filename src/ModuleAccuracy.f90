@@ -56,9 +56,8 @@ module ModuleAccuracy
                 
                 call GetIDType(AllParameters%SireArray, AllParameters%nSire, InID, PosID)
 
-                ImputedPhase(1,:) = AllParameters%SireArray(PosID)%ind%phaseInfo(:,1)
-                ImputedPhase(2,:) = AllParameters%SireArray(PosID)%ind%phaseInfo(:,2)
-
+                ImputedPhase(1,:) = AllParameters%SireArray(PosID)%ind%individualPhase(1)%toIntegerArray()
+                ImputedPhase(2,:) = AllParameters%SireArray(PosID)%ind%individualPhase(2)%toIntegerArray()
 
                 do i=1, AllParameters%nSnp
                     if ((SUM(TruePhase(:,i))==1) .and. (SUM(ImputedPhase(:,i))==1)) then
