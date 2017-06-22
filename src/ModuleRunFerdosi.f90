@@ -58,17 +58,9 @@ module ModuleRunFerdosi
             type(haplotype) :: hap1, hap2
             integer :: i
             do i=1, ped%pedigreeSize
-
-                hap1 = Haplotype(ped%pedigree(i)%phaseinfo(:,1))
-                hap2 = Haplotype(ped%pedigree(i)%phaseinfo(:,2))
+                hap1 = ped%pedigree(i)%individualPhase(1)
+                hap2 = ped%pedigree(i)%individualPhase(2)
                 call ped%pedigree(i)%individualGenotype%setFromHaplotypesIfMissing(hap1,hap2)
-                ped%pedigree(i)%individualPhase(1) = hap1
-                ped%pedigree(i)%individualPhase(2) = hap2
-
-
-                if (allocated(ped%pedigree(i)%phaseInfo)) then
-                    deallocate(ped%pedigree(i)%phaseInfo)
-                endif
             enddo 
 
 
