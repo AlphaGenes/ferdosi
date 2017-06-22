@@ -29,7 +29,7 @@ module ModuleRunFerdosi
 
             
             ! This trims the array to only include animals with 5 or more offspring, and that they are genotyped
-            ! call ped%sireList%removeIndividualsBasedOnThreshold(nOffsThresh=5, genotyped=.true.)
+            call ped%sireList%removeIndividualsBasedOnThreshold(nOffsThresh=5)
             allocate(AllParameters%SireArray(ped%sireList%length))
             AllParameters%nSire = ped%sireList%length
             block
@@ -61,6 +61,7 @@ module ModuleRunFerdosi
                 hap1 = ped%pedigree(i)%individualPhase(1)
                 hap2 = ped%pedigree(i)%individualPhase(2)
                 call ped%pedigree(i)%individualGenotype%setFromHaplotypesIfMissing(hap1,hap2)
+                ped%pedigree(i)%genotyped = .true.
             enddo 
 
 
