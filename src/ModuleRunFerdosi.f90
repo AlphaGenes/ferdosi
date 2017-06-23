@@ -43,7 +43,17 @@ module ModuleRunFerdosi
                 enddo
 
             end block 
-            call RunFerdosiPerSire(AllParameters, ped)
+
+            if (present(sireDamOpt))  then
+
+                if (sireDamOpt == 2) then
+                    call RunFerdosiPerDam(AllParameters,ped)
+                else !< default, run per sire
+                    call RunFerdosiPerSire(AllParameters, ped)
+                endif
+            else !< default, run per sire
+                call RunFerdosiPerSire(AllParameters, ped)
+            endif
             call convertPhaseInfo(ped)
 
 
@@ -97,6 +107,30 @@ module ModuleRunFerdosi
             
         end subroutine RunFerdosiPerSire
 
+
+
+        subroutine RunFerdosiPerDam(AllParameters, ped)
+
+            use ModuleParameters
+            use Ferdosi
+            use PedigreeModule
+            implicit none
+
+            type(Parameters), intent(inout) :: AllParameters
+            type(PedigreeHolder) :: ped
+            type(IndividualLinkedListNode),pointer :: ind
+
+            integer :: i
+            print *, "Ferdosi passed ", ped%damList%length, " dams"
+            print*, "Running Ferdosi for each dam..."
+            ind => ped%damList%first
+            do i=1, ped%damList%length
+                call FerdosiRunner(ind%item, AllParameters%nSnp, AllParameters%overwriteHalfSibPhase)
+                ind => ind%next
+            enddo
+
+            
+        end subroutine RunFerdosiPerDam
         !###########################################################################################################################################################
 
  
