@@ -17,17 +17,20 @@ module ModuleRunFerdosi
         !> @author  David Wilson david.wilson@roslin.ed.ac.uk
         !> @date    October 26, 2016
         !---------------------------------------------------------------------------
-        subroutine doFerdosi(AllParameters,ped, sireDamOpt)
+        subroutine doFerdosi(ped,AllParametersIn, sireDamOpt)
             use ModuleParameters
 
-            type(Parameters) :: AllParameters
-            type(PedigreeHolder) :: ped
+
+            class(PedigreeHolder), intent(inout) :: ped
+            type(Parameters), optional :: AllParametersIn
             integer, optional, intent(in) ::sireDamOpt
 
 
-            ! TODO add in support for iterating through dams :P 
-
-            
+            if (present(AllParametersIn)) then
+                AllParameters = AllParametersIn
+            else 
+                AllParameters = initSpecDefaults(ped)
+            endif
             ! This trims the array to only include animals with 5 or more offspring, and that they are genotyped
             call ped%sireList%removeIndividualsBasedOnThreshold(nOffsThresh=5)
             allocate(AllParameters%SireArray(ped%sireList%length))
@@ -71,7 +74,8 @@ module ModuleRunFerdosi
                 hap1 = ped%pedigree(i)%individualPhase(1)
                 hap2 = ped%pedigree(i)%individualPhase(2)
                 call ped%pedigree(i)%individualGenotype%setFromHaplotypesIfMissing(hap1,hap2)
-                ped%pedigree(i)%genotyped = .true.
+                ! TODO check if the following is needed
+                ! ped%pedigree(i)%genotyped = .true.
             enddo 
 
 

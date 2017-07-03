@@ -13,7 +13,7 @@ module ModuleParameters
 	type Parameters
 
 		! from specfile
-		integer :: nSire, nSnp
+		integer :: nSire, nSnp, nDam
 		character(len=:), allocatable :: PedigreeFile, GenotypesFileOffspring, PhaseFileSire
         logical :: overwriteHalfSibPhase !< Phase half sibs
         
@@ -32,6 +32,28 @@ module ModuleParameters
 
         !###########################################################################################################################################################
 
+        function initSpecDefaults(ped) result(Parameters)
+            use PedigreeModule
+            
+            type(Parameters) :: Parameters
+
+
+            params%nSire = ped%sireList%length
+            params%nDam = ped%damList%length
+            params%overwriteHalfSibPhase = .false.
+
+            if (ped%nGenotyped > 0) then
+                params%nsnp = ped%pedigree(ped%genotypeMap(1))%individualGenotype%length
+
+            else 
+                write(error_unit,*) "ERROR - Ferdosi given a pedigree with no genotyped animals"
+                stop
+            endif
+            
+            if 
+
+
+        end function initSpecDefaults
 
         subroutine ReadSpec(AllParameters, specfile)
 
