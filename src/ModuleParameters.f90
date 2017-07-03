@@ -32,10 +32,11 @@ module ModuleParameters
 
         !###########################################################################################################################################################
 
-        function initSpecDefaults(ped) result(Parameters)
+        function initSpecDefaults(ped) result(params)
             use PedigreeModule
             
-            type(Parameters) :: Parameters
+            type(PedigreeHolder), intent(in) :: ped
+            type(Parameters) :: params
 
 
             params%nSire = ped%sireList%length
@@ -50,8 +51,6 @@ module ModuleParameters
                 stop
             endif
             
-            if 
-
 
         end function initSpecDefaults
 

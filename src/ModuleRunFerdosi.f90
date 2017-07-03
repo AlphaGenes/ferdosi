@@ -25,6 +25,8 @@ module ModuleRunFerdosi
             type(Parameters), optional :: AllParametersIn
             integer, optional, intent(in) ::sireDamOpt
 
+            type(Parameters) :: AllParameters
+
 
             if (present(AllParametersIn)) then
                 AllParameters = AllParametersIn

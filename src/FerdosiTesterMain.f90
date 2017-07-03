@@ -71,7 +71,7 @@ program FerdosiTesterMain
 
 	call ped%addGenotypeInformationFromFile(AllParameters%GenotypesFileOffspring, AllParameters%nsnp)
 	
-	call doFerdosi(AllParameters, ped )
+	call doFerdosi(ped, AllParameters )
 
 
 	call CalculateAccuracyStats(AllParameters)
