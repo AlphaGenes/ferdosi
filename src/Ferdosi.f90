@@ -58,6 +58,9 @@ module Ferdosi
                 call PhaseHalfSibs(nSnp,ind,HalfSibPhase,HalfSibParentPhaseCode,halfSibs, overwritehalfsibphase)
             endif
 
+
+            call halfSibs%destroyLinkedList()
+
             deallocate(HalfSibRecombPos)
             deallocate(OpposingHomoPositions)
             deallocate(HalfSibParentPhaseCode)
