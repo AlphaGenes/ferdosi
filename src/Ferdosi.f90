@@ -3,6 +3,7 @@
 module Ferdosi
 
     ! AUTHOR : SGONEN 18.02.2016
+    use IndividualModule
     use PedigreeModule
     implicit none
 
@@ -106,7 +107,8 @@ module Ferdosi
     !###########################################################################################################################################################
 
         subroutine FillFixed(nSnp,halfSibs,parent, OpposingHomoPositions)
-            
+           
+            use IndividualModule
             implicit none
 
             integer, intent(in) :: nSnp
@@ -137,6 +139,7 @@ module Ferdosi
 
         subroutine DefineCommonParentPhase(nSnp,parent,halfSibs,OpposingHomoPositions,HalfSibRecombPos,HalfSibParentPhaseCode)
 
+            use individualModule
             implicit none
             
             integer, intent(in) :: nSnp
@@ -380,7 +383,7 @@ module Ferdosi
     !###########################################################################################################################################################
 
         subroutine InferCommonParentHaplotypes(nSnp,parent,halfsibs,HalfSibParentPhaseCode,OpposingHomoPositions, HalfSibRecombPos)
-
+            use IndividualModule
             implicit none
 
             integer, intent(in) :: nSnp
@@ -443,7 +446,7 @@ module Ferdosi
     !###########################################################################################################################################################
         
         subroutine DefineRecombLocations(nSnp, HalfSibRecombPos, parent, halfSibs, HalfSibParentPhaseCode)
-
+          use IndividualModule
             implicit none
 
             integer, intent(in) :: nSnp
@@ -568,7 +571,7 @@ module Ferdosi
     !###########################################################################################################################################################
 
         subroutine PhaseHalfSibs(nSnp,parent,HalfSibPhase,HalfSibParentPhaseCode,halfSibs,overwriteHalfSibPhase)
-
+            use IndividualModule
             implicit none
 
             integer, intent(in) :: nSnp
