@@ -66,7 +66,7 @@ program FerdosiTesterMain
 
 	call ReadSpec(AllParameters, "FerdosiSpec.txt")
 
-	ped = PedigreeHolder(AllParameters%PedigreeFile,nsnps=AllParameters%nSnp)
+	call PedigreeHolder(ped,AllParameters%PedigreeFile,nsnps=AllParameters%nSnp)
 	
 
 	call ped%addGenotypeInformationFromFile(AllParameters%GenotypesFileOffspring, AllParameters%nsnp)
@@ -80,7 +80,7 @@ program FerdosiTesterMain
 	
 	call WriteAccuracies(AllParameters)
 
-	call ped%destroyPedigree()
+	! call ped%destroyPedigree()
 	
 	!TODO deallocate all arrays
 

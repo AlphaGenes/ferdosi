@@ -60,7 +60,7 @@ module Ferdosi
             endif
 
 
-            call halfSibs%destroyLinkedList()
+            ! call halfSibs%destroyLinkedList()
 
             deallocate(HalfSibRecombPos)
             deallocate(OpposingHomoPositions)
