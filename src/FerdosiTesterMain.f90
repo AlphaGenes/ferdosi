@@ -66,7 +66,7 @@ program FerdosiTesterMain
 
 	call ReadSpec(AllParameters, "FerdosiSpec.txt")
 
-	call PedigreeHolder(ped,AllParameters%PedigreeFile,nsnps=AllParameters%nSnp)
+	call initPedigree(ped,AllParameters%PedigreeFile,nsnps=AllParameters%nSnp)
 	
 
 	call ped%addGenotypeInformationFromFile(AllParameters%GenotypesFileOffspring, AllParameters%nsnp)
